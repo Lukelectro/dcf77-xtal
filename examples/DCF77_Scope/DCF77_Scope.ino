@@ -312,6 +312,35 @@ void setupTimer() {
 }
 #endif
 
+#if defined(__AVR_ATmega161__)
+ISR(TIMER2_COMP_vect) {
+    process_one_sample();
+}
+
+
+void initTimer2() {
+
+	TCCR2 = (1<<CTC0) | (1<<CS22); // CTC mode, PCK2/64
+
+    // 124 + 1 == 125 == 125 000 / 1000 =  (8 000 000 / 64) / 1000
+    OCR2 = 124;
+
+    // enable Timer 2 interrupts
+    TIMSK = (1<<OCIE2);
+}
+
+void stopTimer0() {
+    // ensure that the standard timer interrupts will not
+    // mess with msTimer2
+    TIMSK &= ~ ((1<<TOIE0)|(1<<OCIE0));
+}
+
+void setupTimer() {
+    initTimer2();
+    stopTimer0();
+}
+#endif
+
 #if defined(__SAM3X8E__)
 // Systick hook implementation moved to systick_hook.cpp
 // in order to fix compiler issue.
